@@ -23,24 +23,15 @@ const ExternalWebtoonDetail = () => {
                     getExternalMangaChapters(id)
                 ]);
 
-                console.log('[DEBUG] mangaRes:', mangaRes);
-                console.log('[DEBUG] mangaRes type:', typeof mangaRes);
-                console.log('[DEBUG] mangaRes keys:', mangaRes ? Object.keys(mangaRes) : 'null');
-
-                // getExternalMangaDetails returns response.data (axios unwrapped)
-                // That gives us the MangaDex JSON body: { result, response, data: { id, type, attributes, relationships } }
                 const mangaObj = mangaRes?.data || null;
-                console.log('[DEBUG] mangaObj:', mangaObj?.id, mangaObj?.attributes?.title);
                 setManga(mangaObj);
 
                 const rawChapters = chapterRes?.data || [];
-                console.log('[DEBUG] chapters count:', rawChapters.length);
                 let filtered = rawChapters.filter(ch => ch.attributes.translatedLanguage === 'en');
                 if (filtered.length === 0 && rawChapters.length > 0) filtered = rawChapters;
                 const sorted = filtered.sort((a, b) => (parseFloat(a.attributes.chapter) || 0) - (parseFloat(b.attributes.chapter) || 0));
                 setChapters(sorted);
 
-                // Check favorite status separately so it doesn't break the page
                 if (user) {
                     try {
                         const favRes = await api.get(`/users/favorites/external/check/${id}`);
@@ -62,22 +53,23 @@ const ExternalWebtoonDetail = () => {
         if (!user) return alert('Please log in to save to your library');
         setFavLoading(true);
         try {
-            // Get cover and title for external persistence
+            // FIX: use manga.attributes instead of undefined `attributes`
+            const attrs = manga?.attributes;
             const coverArt = manga?.relationships?.find(r => r.type === 'cover_art');
-            const cover = coverArt?.attributes ? `https://uploads.mangadex.org/covers/${manga.id}/${coverArt.attributes.fileName}.256.jpg` : '';
-            const t = attributes?.title?.en || Object.values(attributes?.title || {})[0] || '';
-            
-            console.log('[DEBUG] Toggling favorite for:', id);
-            const res = await api.post('/users/favorites/external', { 
-                externalId: id, 
-                title: t, 
-                coverUrl: cover 
+            const cover = coverArt?.attributes
+                ? `https://uploads.mangadex.org/covers/${manga.id}/${coverArt.attributes.fileName}.256.jpg`
+                : '';
+            const t = attrs?.title?.en || Object.values(attrs?.title || {})[0] || '';
+
+            const res = await api.post('/users/favorites/external', {
+                externalId: id,
+                title: t,
+                coverUrl: cover
             });
-            
+
             if (res.data.status) {
                 setIsFavorite(res.data.status === 'added');
             } else {
-                // Fallback toggle if status missing
                 setIsFavorite(!isFavorite);
             }
         } catch (e) {
@@ -97,11 +89,13 @@ const ExternalWebtoonDetail = () => {
     if (!manga) return <div className="text-center p-20 text-xl font-bold dark:text-white">Manga not found in Global Library.</div>;
 
     const attributes = manga.attributes;
-    const title = attributes.title.en || Object.values(attributes.title)[0] || 'Unknown Title';
-    const description = attributes.description.en || Object.values(attributes.description)[0] || 'No description available.';
-    
-    const coverArt = manga.relationships.find(rel => rel.type === 'cover_art');
-    const coverUrl = coverArt ? `https://uploads.mangadex.org/covers/${manga.id}/${coverArt.attributes?.fileName}` : '/placeholder-cover.jpg';
+    const title = attributes?.title?.en || Object.values(attributes?.title || {})[0] || 'Unknown Title';
+    const description = attributes?.description?.en || Object.values(attributes?.description || {})[0] || 'No description available.';
+
+    const coverArt = manga.relationships?.find(rel => rel.type === 'cover_art');
+    const coverUrl = coverArt?.attributes
+        ? `https://uploads.mangadex.org/covers/${manga.id}/${coverArt.attributes.fileName}`
+        : '/placeholder-cover.jpg';
 
     return (
         <div className="max-w-6xl mx-auto space-y-12 animate-fade-in pb-20">
@@ -112,12 +106,12 @@ const ExternalWebtoonDetail = () => {
             {/* Premium Header Profile */}
             <div className="flex flex-col md:flex-row gap-10 bg-white dark:bg-[#1e1e1e] p-6 md:p-12 rounded-[2.5rem] shadow-2xl border border-gray-100 dark:border-gray-800 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-[#00dc64]/5 rounded-full -mr-32 -mt-32 blur-3xl transition-transform duration-1000 group-hover:scale-110"></div>
-                
+
                 <div className="w-full md:w-80 flex-shrink-0 relative z-10">
-                    <img 
-                        src={coverUrl} 
-                        alt={title} 
-                        className="w-full rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 transition-transform duration-500 group-hover:scale-[1.02]" 
+                    <img
+                        src={coverUrl}
+                        alt={title}
+                        className="w-full rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 transition-transform duration-500 group-hover:scale-[1.02]"
                     />
                 </div>
 
@@ -128,7 +122,7 @@ const ExternalWebtoonDetail = () => {
                                 Global Library
                             </span>
                             <span className="bg-gray-100 dark:bg-gray-800 text-gray-400 px-5 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-transparent dark:border-gray-700">
-                                {attributes.status}
+                                {attributes?.status}
                             </span>
                         </div>
 
@@ -147,11 +141,11 @@ const ExternalWebtoonDetail = () => {
                             </p>
                         </div>
                     </div>
-                    
+
                     <div className="flex flex-wrap gap-4">
                         {chapters.length > 0 ? (
-                            <Link 
-                                to={`/external-webtoon/${id}/chapter/${chapters[0].id}`} 
+                            <Link
+                                to={`/external-webtoon/${id}/chapter/${chapters[0].id}`}
                                 className="inline-flex items-center gap-3 bg-[#00dc64] hover:bg-[#00b953] text-white font-black text-lg px-10 py-5 rounded-2xl transition shadow-xl shadow-[#00dc64]/40 hover:-translate-y-1 active:scale-95"
                             >
                                 <BookOpen size={22} /> Start Reading
@@ -161,7 +155,7 @@ const ExternalWebtoonDetail = () => {
                                 No Chapters available on Global Library
                             </button>
                         )}
-                        <button 
+                        <button
                             onClick={handleFavorite}
                             disabled={favLoading}
                             title={user ? (isFavorite ? 'Remove from Library' : 'Add to My Library') : 'Login to save'}
@@ -177,7 +171,7 @@ const ExternalWebtoonDetail = () => {
             <div className="bg-white dark:bg-[#1e1e1e] p-8 md:p-12 rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800">
                 <div className="flex items-center justify-between mb-10 border-b border-gray-100 dark:border-gray-800 pb-6">
                     <h2 className="text-3xl font-black flex items-center gap-4 dark:text-white">
-                        <List className="text-[#00dc64]" size={32} /> 
+                        <List className="text-[#00dc64]" size={32} />
                         Chapters
                     </h2>
                     <span className="text-gray-400 font-bold bg-gray-100 dark:bg-gray-800 px-4 py-1.5 rounded-full text-sm">
@@ -187,8 +181,8 @@ const ExternalWebtoonDetail = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {chapters.length > 0 ? chapters.map((chapter) => (
-                        <Link 
-                            key={chapter.id} 
+                        <Link
+                            key={chapter.id}
                             to={`/external-webtoon/${id}/chapter/${chapter.id}`}
                             className="group flex items-center justify-between p-5 rounded-2xl bg-gray-50/50 dark:bg-black/10 hover:bg-[#00dc64]/5 dark:hover:bg-[#00dc64]/10 transition-all duration-300 border border-transparent hover:border-[#00dc64]/30"
                         >
@@ -210,11 +204,11 @@ const ExternalWebtoonDetail = () => {
                                     </div>
                                 </div>
                             </div>
-                            < ChevronRight className="text-gray-300 group-hover:text-[#00dc64] transition-transform group-hover:translate-x-1" />
+                            <ChevronRight className="text-gray-300 group-hover:text-[#00dc64] transition-transform group-hover:translate-x-1" />
                         </Link>
                     )) : (
                         <div className="col-span-full text-center py-20 bg-gray-50/30 dark:bg-black/10 rounded-3xl">
-                             <p className="text-gray-500 font-bold text-lg">No hostable chapters were found for this series.</p>
+                            <p className="text-gray-500 font-bold text-lg">No hostable chapters were found for this series.</p>
                         </div>
                     )}
                 </div>

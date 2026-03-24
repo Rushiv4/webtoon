@@ -1,15 +1,52 @@
 const express = require('express');
 const router = express.Router();
+const axios = require('axios');
 const mangaDexService = require('../services/mangaDexService');
+
+// ── Image Proxy ────────────────────────────────────────────────────
+// MangaDex@Home images block direct browser requests (hotlink protection).
+// This proxy fetches the image server-side and streams it to the client.
+router.get('/image-proxy', async (req, res) => {
+    const { url } = req.query;
+    if (!url) return res.status(400).json({ error: 'url param required' });
+
+    // Only allow mangadex CDN domains for security
+    const allowedHosts = ['uploads.mangadex.org', 'cmdxd98sb0x3yprd.mangadex.network'];
+    try {
+        const parsed = new URL(url);
+        if (!allowedHosts.some(h => parsed.hostname.endsWith(h))) {
+            return res.status(403).json({ error: 'Domain not allowed' });
+        }
+    } catch {
+        return res.status(400).json({ error: 'Invalid URL' });
+    }
+
+    try {
+        const response = await axios.get(url, {
+            responseType: 'arraybuffer',
+            headers: {
+                'Referer': 'https://mangadex.org/',
+                'User-Agent': 'WebtoonReadingApp/1.0.0 (rdhane4@gmail.com)',
+            },
+            timeout: 15000,
+        });
+
+        const contentType = response.headers['content-type'] || 'image/jpeg';
+        res.set('Content-Type', contentType);
+        res.set('Cache-Control', 'public, max-age=86400'); // cache 24h
+        res.send(Buffer.from(response.data));
+    } catch (error) {
+        console.error('[ERROR] image-proxy:', error.message);
+        res.status(502).json({ error: 'Failed to fetch image' });
+    }
+});
 
 // Search by title
 router.get('/search', async (req, res) => {
     try {
         const { title, limit } = req.query;
-        console.log(`[DEBUG] GET /external/search - title: ${title}, limit: ${limit}`);
         if (!title) return res.status(400).json({ error: 'Title query parameter is required' });
         const results = await mangaDexService.searchManga(title, limit);
-        console.log(`[DEBUG] Search results count: ${results.data?.length || 0}`);
         res.json(results);
     } catch (error) {
         console.error('[ERROR] /external/search:', error.message);
@@ -53,20 +90,7 @@ router.get('/manga/:id/chapters', async (req, res) => {
 router.get('/trending', async (req, res) => {
     try {
         const { limit } = req.query;
-        console.log(`[DEBUG] GET /external/trending - limit: ${limit}`);
         const results = await mangaDexService.getTrendingManga(limit);
-        
-        if (results.data && results.data.length > 0) {
-            const firstManga = results.data[0];
-            const cover = firstManga.relationships?.find(r => r.type === 'cover_art');
-            console.log(`[DEBUG] First Manga: ${firstManga.attributes?.title?.en || 'Unknown'}`);
-            console.log(`[DEBUG] Cover Art Attributes present: ${!!cover?.attributes}`);
-            if (cover?.attributes) {
-                console.log(`[DEBUG] Cover fileName: ${cover.attributes.fileName}`);
-            }
-        }
-
-        console.log(`[DEBUG] Trending results count: ${results.data?.length || 0}`);
         res.json(results);
     } catch (error) {
         console.error('[ERROR] /external/trending:', error.message);
