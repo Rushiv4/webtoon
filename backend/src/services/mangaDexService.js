@@ -4,6 +4,12 @@ require('dotenv').config();
 const BASE_URL = 'https://api.mangadex.org';
 const AUTH_URL = 'https://auth.mangadex.org/realms/mangadex/protocol/openid-connect/token';
 
+// MangaDex requires a descriptive User-Agent
+const HEADERS = {
+    'User-Agent': 'WebtoonReadingApp/1.0.0 (rdhane4@gmail.com)',
+    'Content-Type': 'application/json'
+};
+
 let accessToken = null;
 let tokenExpiresAt = null;
 
@@ -28,6 +34,7 @@ const authenticate = async () => {
     }
 
     try {
+        console.log(`[DEBUG] Authenticating with MangaDex for user: ${MANGADEX_USERNAME}`);
         const response = await axios.post(AUTH_URL, new URLSearchParams({
             grant_type: 'password',
             username: MANGADEX_USERNAME,
@@ -35,30 +42,36 @@ const authenticate = async () => {
             client_id: MANGADEX_CLIENT_ID,
             client_secret: MANGADEX_CLIENT_SECRET
         }), {
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': HEADERS['User-Agent']
+            }
         });
 
         accessToken = response.data.access_token;
-        tokenExpiresAt = Date.now() + (response.data.expires_in * 1000) - 60000; // Buffer of 1 min
+        tokenExpiresAt = Date.now() + (response.data.expires_in * 1000) - 60000; 
+        console.log('[DEBUG] MangaDex authentication successful');
         return accessToken;
     } catch (error) {
-        console.error('MangaDex Authentication failed:', error.response?.data || error.message);
+        console.error('[ERROR] MangaDex Authentication failed:', error.response?.data || error.message);
         return null;
     }
 };
 
 const searchManga = async (title, limit = 20) => {
     try {
+        console.log(`[DEBUG] MangaDex Search: ${title}`);
         const response = await axios.get(`${BASE_URL}/manga`, {
             params: {
                 title,
                 limit,
                 'includes[]': ['cover_art', 'author', 'artist']
-            }
+            },
+            headers: HEADERS
         });
         return response.data;
     } catch (error) {
-        console.error('MangaDex Search failed:', error.response?.data || error.message);
+        console.error('[ERROR] MangaDex Search failed:', error.response?.data || error.message);
         throw error;
     }
 };
@@ -114,17 +127,19 @@ const getMangaChapters = async (id, offset = 0, limit = 500) => {
 
 const getTrendingManga = async (limit = 10) => {
     try {
+        console.log('[DEBUG] Fetching trending manga from MangaDex');
         const response = await axios.get(`${BASE_URL}/manga`, {
             params: {
                 limit,
                 'order[followedCount]': 'desc',
                 'includes[]': ['cover_art', 'author', 'artist'],
                 'contentRating[]': ['safe', 'suggestive']
-            }
+            },
+            headers: HEADERS
         });
         return response.data;
     } catch (error) {
-        console.error('MangaDex Get Trending failed:', error.response?.data || error.message);
+        console.error('[ERROR] MangaDex Get Trending failed:', error.response?.data || error.message);
         throw error;
     }
 };
@@ -132,8 +147,7 @@ const getTrendingManga = async (limit = 10) => {
 const getChapterImages = async (chapterId) => {
     try {
         console.log(`[DEBUG] Fetching metadata for chapter: ${chapterId}`);
-        // First get the chapter metadata to check for external URLs
-        const chapterRes = await axios.get(`${BASE_URL}/chapter/${chapterId}`);
+        const chapterRes = await axios.get(`${BASE_URL}/chapter/${chapterId}`, { headers: HEADERS });
         const chapterData = chapterRes.data.data;
         const externalUrl = chapterData.attributes.externalUrl;
 
@@ -146,7 +160,7 @@ const getChapterImages = async (chapterId) => {
 
         console.log(`[DEBUG] Fetching images from @home for chapter: ${chapterId}`);
         // Otherwise try to get the images from MangaDex@Home
-        const response = await axios.get(`${BASE_URL}/at-home/server/${chapterId}`);
+        const response = await axios.get(`${BASE_URL}/at-home/server/${chapterId}`, { headers: HEADERS });
         const { baseUrl, chapter } = response.data;
         const { hash, data, dataSaver } = chapter;
         
