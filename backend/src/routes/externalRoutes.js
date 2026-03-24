@@ -6,10 +6,13 @@ const mangaDexService = require('../services/mangaDexService');
 router.get('/search', async (req, res) => {
     try {
         const { title, limit } = req.query;
+        console.log(`[DEBUG] GET /external/search - title: ${title}, limit: ${limit}`);
         if (!title) return res.status(400).json({ error: 'Title query parameter is required' });
         const results = await mangaDexService.searchManga(title, limit);
+        console.log(`[DEBUG] Search results count: ${results.data?.length || 0}`);
         res.json(results);
     } catch (error) {
+        console.error('[ERROR] /external/search:', error.message);
         res.status(500).json({ error: 'Failed to search' });
     }
 });
@@ -50,9 +53,12 @@ router.get('/manga/:id/chapters', async (req, res) => {
 router.get('/trending', async (req, res) => {
     try {
         const { limit } = req.query;
+        console.log(`[DEBUG] GET /external/trending - limit: ${limit}`);
         const results = await mangaDexService.getTrendingManga(limit);
+        console.log(`[DEBUG] Trending results count: ${results.data?.length || 0}`);
         res.json(results);
     } catch (error) {
+        console.error('[ERROR] /external/trending:', error.message);
         res.status(500).json({ error: 'Failed to get trending manga' });
     }
 });
