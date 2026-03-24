@@ -46,7 +46,13 @@ const loginUser = async (req, res) => {
   try {
     const user = await findUserByEmail(email);
 
-    if (user && (await bcrypt.compare(password, user.password_hash))) {
+    if (!user || !user.password_hash) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+
+    if (isMatch) {
       res.json({
         id: user.id,
         username: user.username,
@@ -58,8 +64,8 @@ const loginUser = async (req, res) => {
       res.status(401).json({ message: 'Invalid email or password' });
     }
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error during login' });
+    console.error('Login Error:', error);
+    res.status(500).json({ message: 'Server error during login', error: error.message });
   }
 };
 
