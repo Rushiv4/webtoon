@@ -10,6 +10,24 @@ const HEADERS = {
     'Content-Type': 'application/json'
 };
 
+const apiClient = axios.create({
+    baseURL: BASE_URL,
+    headers: HEADERS,
+    paramsSerializer: (params) => {
+        const query = new URLSearchParams();
+        for (const [key, value] of Object.entries(params)) {
+            if (Array.isArray(value)) {
+                for (const item of value) {
+                    query.append(`${key}[]`, item);
+                }
+            } else if (value !== undefined && value !== null) {
+                query.append(key, value);
+            }
+        }
+        return query.toString();
+    }
+});
+
 let accessToken = null;
 let tokenExpiresAt = null;
 
@@ -61,13 +79,12 @@ const authenticate = async () => {
 const searchManga = async (title, limit = 20) => {
     try {
         console.log(`[DEBUG] MangaDex Search: ${title}`);
-        const response = await axios.get(`${BASE_URL}/manga`, {
+        const response = await apiClient.get('/manga', {
             params: {
                 title,
                 limit,
-                'includes[]': ['cover_art', 'author', 'artist']
-            },
-            headers: HEADERS
+                includes: ['cover_art', 'author', 'artist']
+            }
         });
         return response.data;
     } catch (error) {
@@ -78,12 +95,12 @@ const searchManga = async (title, limit = 20) => {
 
 const searchMangaByTag = async (tagId, limit = 20) => {
     try {
-        const response = await axios.get(`${BASE_URL}/manga`, {
+        const response = await apiClient.get('/manga', {
             params: {
                 limit,
-                'includedTags[]': [tagId],
-                'includes[]': ['cover_art', 'author', 'artist'],
-                'contentRating[]': ['safe', 'suggestive'],
+                includedTags: [tagId],
+                includes: ['cover_art', 'author', 'artist'],
+                contentRating: ['safe', 'suggestive'],
                 'order[followedCount]': 'desc'
             }
         });
@@ -96,9 +113,9 @@ const searchMangaByTag = async (tagId, limit = 20) => {
 
 const getMangaDetails = async (id) => {
     try {
-        const response = await axios.get(`${BASE_URL}/manga/${id}`, {
+        const response = await apiClient.get(`/manga/${id}`, {
             params: {
-                'includes[]': ['cover_art', 'author', 'artist']
+                includes: ['cover_art', 'author', 'artist']
             }
         });
         return response.data;
@@ -110,11 +127,11 @@ const getMangaDetails = async (id) => {
 
 const getMangaChapters = async (id, offset = 0, limit = 500) => {
     try {
-        const response = await axios.get(`${BASE_URL}/manga/${id}/feed`, {
+        const response = await apiClient.get(`/manga/${id}/feed`, {
             params: {
                 limit,
                 offset,
-                'translatedLanguage[]': ['en'],
+                translatedLanguage: ['en'],
                 'order[chapter]': 'asc'
             }
         });
@@ -128,14 +145,13 @@ const getMangaChapters = async (id, offset = 0, limit = 500) => {
 const getTrendingManga = async (limit = 10) => {
     try {
         console.log('[DEBUG] Fetching trending manga from MangaDex');
-        const response = await axios.get(`${BASE_URL}/manga`, {
+        const response = await apiClient.get('/manga', {
             params: {
                 limit,
                 'order[followedCount]': 'desc',
-                'includes[]': ['cover_art', 'author', 'artist'],
-                'contentRating[]': ['safe', 'suggestive']
-            },
-            headers: HEADERS
+                includes: ['cover_art', 'author', 'artist'],
+                contentRating: ['safe', 'suggestive']
+            }
         });
         return response.data;
     } catch (error) {
@@ -147,7 +163,7 @@ const getTrendingManga = async (limit = 10) => {
 const getChapterImages = async (chapterId) => {
     try {
         console.log(`[DEBUG] Fetching metadata for chapter: ${chapterId}`);
-        const chapterRes = await axios.get(`${BASE_URL}/chapter/${chapterId}`, { headers: HEADERS });
+        const chapterRes = await apiClient.get(`/chapter/${chapterId}`);
         const chapterData = chapterRes.data.data;
         const externalUrl = chapterData.attributes.externalUrl;
 
@@ -160,7 +176,7 @@ const getChapterImages = async (chapterId) => {
 
         console.log(`[DEBUG] Fetching images from @home for chapter: ${chapterId}`);
         // Otherwise try to get the images from MangaDex@Home
-        const response = await axios.get(`${BASE_URL}/at-home/server/${chapterId}`, { headers: HEADERS });
+        const response = await apiClient.get(`/at-home/server/${chapterId}`);
         const { baseUrl, chapter } = response.data;
         const { hash, data, dataSaver } = chapter;
         
