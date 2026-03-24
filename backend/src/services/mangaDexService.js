@@ -31,6 +31,31 @@ const apiClient = axios.create({
 let accessToken = null;
 let tokenExpiresAt = null;
 
+const normalizeManga = (manga) => {
+    if (!manga) return null;
+    const attr = manga.attributes || {};
+    const cover = manga.relationships?.find(r => r.type === 'cover_art');
+    const fileName = cover?.attributes?.fileName;
+    
+    // Find author/artist names if available
+    const authorRel = manga.relationships?.find(r => r.type === 'author');
+    const artistRel = manga.relationships?.find(r => r.type === 'artist');
+
+    return {
+        id: manga.id,
+        title: attr.title?.en || Object.values(attr.title || {})[0] || 'No Title',
+        description: attr.description?.en || Object.values(attr.description || {})[0] || '',
+        status: attr.status,
+        coverUrl: fileName ? `https://uploads.mangadex.org/covers/${manga.id}/${fileName}.256.jpg` : null,
+        fullCoverUrl: fileName ? `https://uploads.mangadex.org/covers/${manga.id}/${fileName}` : null,
+        author: authorRel?.attributes?.name || 'Unknown',
+        artist: artistRel?.attributes?.name || 'Unknown',
+        type: manga.type,
+        // Keep raw for backward compatibility during transition if needed
+        _raw: manga 
+    };
+};
+
 const authenticate = async () => {
     // If we already have a valid token, skip authentication
     if (accessToken && tokenExpiresAt && Date.now() < tokenExpiresAt) {
@@ -86,7 +111,10 @@ const searchManga = async (title, limit = 20) => {
                 includes: ['cover_art', 'author', 'artist']
             }
         });
-        return response.data;
+        return {
+            ...response.data,
+            data: (response.data.data || []).map(normalizeManga)
+        };
     } catch (error) {
         console.error('[ERROR] MangaDex Search failed:', error.response?.data || error.message);
         throw error;
@@ -104,7 +132,10 @@ const searchMangaByTag = async (tagId, limit = 20) => {
                 'order[followedCount]': 'desc'
             }
         });
-        return response.data;
+        return {
+            ...response.data,
+            data: (response.data.data || []).map(normalizeManga)
+        };
     } catch (error) {
         console.error('MangaDex Tag Search failed:', error.response?.data || error.message);
         throw error;
@@ -118,7 +149,10 @@ const getMangaDetails = async (id) => {
                 includes: ['cover_art', 'author', 'artist']
             }
         });
-        return response.data;
+        return {
+            ...response.data,
+            data: normalizeManga(response.data.data)
+        };
     } catch (error) {
         console.error('MangaDex Get Details failed:', error.response?.data || error.message);
         throw error;
@@ -153,7 +187,10 @@ const getTrendingManga = async (limit = 10) => {
                 contentRating: ['safe', 'suggestive']
             }
         });
-        return response.data;
+        return {
+            ...response.data,
+            data: (response.data.data || []).map(normalizeManga)
+        };
     } catch (error) {
         console.error('[ERROR] MangaDex Get Trending failed:', error.response?.data || error.message);
         throw error;

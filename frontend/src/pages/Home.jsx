@@ -30,12 +30,6 @@ const HeroSlider = ({ items }) => {
   const prev = () => goTo((current - 1 + items.length) % items.length);
   const next = () => goTo((current + 1) % items.length);
 
-  const getCover = (m) => {
-    const c = m.relationships?.find(r => r.type === 'cover_art');
-    return c?.attributes ? `https://uploads.mangadex.org/covers/${m.id}/${c.attributes.fileName}` : '';
-  };
-  const getTitle = (m) => m.attributes?.title?.en || Object.values(m.attributes?.title || {})[0] || '';
-
   if (!items.length) return (
     <div className="w-full h-[520px] md:h-[620px] rounded-[2.5rem] animate-pulse bg-gray-200 dark:bg-gray-800" />
   );
@@ -47,7 +41,7 @@ const HeroSlider = ({ items }) => {
       {/* Crossfade backgrounds */}
       {items.map((m, i) => (
         <div key={m.id} className={`absolute inset-0 transition-opacity duration-1000 ${i === current ? 'opacity-100' : 'opacity-0'}`}>
-          <img src={getCover(m)} alt="" className="w-full h-full object-cover" />
+          <img src={m.fullCoverUrl || m.coverUrl} alt="" className="w-full h-full object-cover" />
         </div>
       ))}
 
@@ -62,18 +56,16 @@ const HeroSlider = ({ items }) => {
             🔥 Trending #{current + 1}
           </span>
           <span className="px-4 py-1.5 bg-white/10 backdrop-blur border border-white/20 text-white text-xs font-black rounded-full capitalize">
-            {slide.attributes?.status}
+            {slide.status}
           </span>
         </div>
 
         <h2 className="text-4xl md:text-6xl font-black text-white mb-4 leading-tight">
-          {getTitle(slide)}
+          {slide.title}
         </h2>
 
         <p className="text-gray-300 text-sm md:text-base mb-10 line-clamp-2 max-w-xl leading-relaxed">
-          {slide.attributes?.description?.en
-            || Object.values(slide.attributes?.description || {})[0]
-            || 'Discover this trending title in the Global Library.'}
+          {slide.description || 'Discover this trending title in the Global Library.'}
         </p>
 
         <div className="flex gap-4 flex-wrap">
@@ -175,16 +167,10 @@ const Home = () => {
       .then(res => setExternalFavorites(res.data || []))
       .catch(() => setExternalFavorites([]));
 
-    // Internal
     api.get('/users/favorites')
       .then(res => setInternalFavorites(res.data || []))
       .catch(() => setInternalFavorites([]));
   }, [user]);
-
-  const getCoverUrl = (m) => {
-    const c = m.relationships?.find(r => r.type === 'cover_art');
-    return c?.attributes ? `https://uploads.mangadex.org/covers/${m.id}/${c.attributes.fileName}.256.jpg` : '';
-  };
 
   const isFiltered = genreFilter || searchQuery;
 
@@ -262,8 +248,8 @@ const Home = () => {
                 <Link to={`/external-webtoon/${manga.id}`} key={manga.id}
                   className="min-w-[180px] md:min-w-[200px] flex-shrink-0 group snap-start">
                   <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-gray-200 dark:bg-gray-800 shadow-md group-hover:shadow-[#00dc64]/20 group-hover:shadow-2xl group-hover:-translate-y-2 transition-all duration-300">
-                    {getCoverUrl(manga) && (
-                      <img src={getCoverUrl(manga)} alt=""
+                    {manga.coverUrl && (
+                      <img src={manga.coverUrl} alt=""
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
@@ -271,9 +257,9 @@ const Home = () => {
                     </div>
                   </div>
                   <p className="mt-2.5 font-bold text-sm dark:text-white line-clamp-1 group-hover:text-[#00dc64] transition-colors">
-                    {manga.attributes?.title?.en || Object.values(manga.attributes?.title || {})[0]}
+                    {manga.title}
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5 capitalize">{manga.attributes?.status}</p>
+                  <p className="text-xs text-gray-400 mt-0.5 capitalize">{manga.status}</p>
                 </Link>
               ))}
           </div>

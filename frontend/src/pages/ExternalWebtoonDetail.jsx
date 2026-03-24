@@ -53,18 +53,10 @@ const ExternalWebtoonDetail = () => {
         if (!user) return alert('Please log in to save to your library');
         setFavLoading(true);
         try {
-            // FIX: use manga.attributes instead of undefined `attributes`
-            const attrs = manga?.attributes;
-            const coverArt = manga?.relationships?.find(r => r.type === 'cover_art');
-            const cover = coverArt?.attributes
-                ? `https://uploads.mangadex.org/covers/${manga.id}/${coverArt.attributes.fileName}.256.jpg`
-                : '';
-            const t = attrs?.title?.en || Object.values(attrs?.title || {})[0] || '';
-
             const res = await api.post('/users/favorites/external', {
                 externalId: id,
-                title: t,
-                coverUrl: cover
+                title: manga.title,
+                coverUrl: manga.coverUrl
             });
 
             if (res.data.status) {
@@ -88,14 +80,10 @@ const ExternalWebtoonDetail = () => {
 
     if (!manga) return <div className="text-center p-20 text-xl font-bold dark:text-white">Manga not found in Global Library.</div>;
 
-    const attributes = manga.attributes;
-    const title = attributes?.title?.en || Object.values(attributes?.title || {})[0] || 'Unknown Title';
-    const description = attributes?.description?.en || Object.values(attributes?.description || {})[0] || 'No description available.';
+    if (!manga) return <div className="text-center p-20 text-xl font-bold dark:text-white">Manga not found in Global Library.</div>;
 
-    const coverArt = manga.relationships?.find(rel => rel.type === 'cover_art');
-    const coverUrl = coverArt?.attributes
-        ? `https://uploads.mangadex.org/covers/${manga.id}/${coverArt.attributes.fileName}`
-        : '/placeholder-cover.jpg';
+    const { title, description, status, fullCoverUrl, coverUrl } = manga;
+    const finalCoverUrl = fullCoverUrl || coverUrl || '/placeholder-cover.jpg';
 
     return (
         <div className="max-w-6xl mx-auto space-y-12 animate-fade-in pb-20">
@@ -109,7 +97,7 @@ const ExternalWebtoonDetail = () => {
 
                 <div className="w-full md:w-80 flex-shrink-0 relative z-10">
                     <img
-                        src={coverUrl}
+                        src={finalCoverUrl}
                         alt={title}
                         className="w-full rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 transition-transform duration-500 group-hover:scale-[1.02]"
                     />
@@ -122,7 +110,7 @@ const ExternalWebtoonDetail = () => {
                                 Global Library
                             </span>
                             <span className="bg-gray-100 dark:bg-gray-800 text-gray-400 px-5 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-transparent dark:border-gray-700">
-                                {attributes?.status}
+                                {status}
                             </span>
                         </div>
 
