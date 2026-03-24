@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -9,6 +8,14 @@ import AdminDashboard from './pages/AdminDashboard';
 import Explore from './pages/Explore';
 import ExternalWebtoonDetail from './pages/ExternalWebtoonDetail';
 import ExternalChapterReader from './pages/ExternalChapterReader';
+import Pricing from './pages/Pricing';
+import Checkout from './pages/Checkout';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import RefundPolicy from './pages/RefundPolicy';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+
+
 import { useContext } from 'react';
 import { ThemeContext } from './context/ThemeContext';
 
@@ -30,8 +37,15 @@ function App() {
             <Route path="/explore" element={<Explore />} />
             <Route path="/external-webtoon/:id" element={<ExternalWebtoonDetail />} />
             <Route path="/external-webtoon/:mangaId/chapter/:chapterId" element={<ExternalChapterReader />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/refund-policy" element={<RefundPolicy />} />
+
+
           </Routes>
         </main>
+        <Footer />
       </div>
     </Router>
   );

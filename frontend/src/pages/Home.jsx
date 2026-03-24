@@ -41,7 +41,12 @@ const HeroSlider = ({ items }) => {
       {/* Crossfade backgrounds */}
       {items.map((m, i) => (
         <div key={m.id} className={`absolute inset-0 transition-opacity duration-1000 ${i === current ? 'opacity-100' : 'opacity-0'}`}>
-          <img src={m.fullCoverUrl || m.coverUrl} alt="" className="w-full h-full object-cover" />
+          <img
+            src={m.fullCoverUrl || m.coverUrl}
+            alt=""
+            crossOrigin="anonymous"
+            className="w-full h-full object-cover"
+          />
         </div>
       ))}
 
@@ -111,13 +116,13 @@ const stats = [
 
 /* ─── Genre Quick Nav ───────────────────────────────────────────── */
 const QUICK_GENRES = [
-  { name: 'Action',     emoji: '⚔️',  color: 'from-orange-500 to-red-600',     id: '391b0423-d847-456f-aff0-8f0cec6cf629' },
-  { name: 'Romance',    emoji: '💕',  color: 'from-pink-500 to-rose-600',      id: '423e2eae-a7a2-4a8b-ac03-a8351462d71d' },
-  { name: 'Fantasy',    emoji: '🧙',  color: 'from-violet-500 to-purple-600',  id: 'cdc58593-87dd-415e-bbc0-2ec27bf404cc' },
-  { name: 'Comedy',     emoji: '😂',  color: 'from-yellow-400 to-orange-400',  id: '4d32cc48-9f00-4cca-9b5a-a839f0764984' },
-  { name: 'Horror',     emoji: '👻',  color: 'from-gray-700 to-gray-900',      id: 'cdad7e68-1419-41dd-bdce-27753074a640' },
-  { name: 'Sci-Fi',     emoji: '🚀',  color: 'from-cyan-500 to-blue-600',      id: '256c8bd9-4904-4360-bf4f-508a76d67183' },
-  { name: 'Isekai',     emoji: '🌀',  color: 'from-fuchsia-500 to-violet-600', id: 'ace04997-f6bd-436e-b261-779182193d3d' },
+  { name: 'Action', emoji: '⚔️', color: 'from-orange-500 to-red-600', id: '391b0423-d847-456f-aff0-8f0cec6cf629' },
+  { name: 'Romance', emoji: '💕', color: 'from-pink-500 to-rose-600', id: '423e2eae-a7a2-4a8b-ac03-a8351462d71d' },
+  { name: 'Fantasy', emoji: '🧙', color: 'from-violet-500 to-purple-600', id: 'cdc58593-87dd-415e-bbc0-2ec27bf404cc' },
+  { name: 'Comedy', emoji: '😂', color: 'from-yellow-400 to-orange-400', id: '4d32cc48-9f00-4cca-9b5a-a839f0764984' },
+  { name: 'Horror', emoji: '👻', color: 'from-gray-700 to-gray-900', id: 'cdad7e68-1419-41dd-bdce-27753074a640' },
+  { name: 'Sci-Fi', emoji: '🚀', color: 'from-cyan-500 to-blue-600', id: '256c8bd9-4904-4360-bf4f-508a76d67183' },
+  { name: 'Isekai', emoji: '🌀', color: 'from-fuchsia-500 to-violet-600', id: 'ace04997-f6bd-436e-b261-779182193d3d' },
   { name: 'Slice of Life', emoji: '☕', color: 'from-teal-400 to-emerald-500', id: 'e5301a23-ebd9-49dd-a0cb-2add944c7fe9' },
 ];
 
@@ -151,17 +156,23 @@ const Home = () => {
   }, [genreFilter, searchQuery]);
 
   useEffect(() => {
-    getTrendingManga(8).then(d => setTrending(d.data || [])).catch(() => {}).finally(() => setTrendingLoading(false));
+    getTrendingManga(8)
+      .then(d => {
+        console.log("[DEBUG] Trending Data Received:", d.data);
+        setTrending(d.data || []);
+      })
+      .catch(() => { })
+      .finally(() => setTrendingLoading(false));
   }, []);
 
   // Load user's library (internal + external)
   useEffect(() => {
-    if (!user) { 
-      setExternalFavorites([]); 
+    if (!user) {
+      setExternalFavorites([]);
       setInternalFavorites([]);
-      return; 
+      return;
     }
-    
+
     // External
     api.get('/users/favorites/external')
       .then(res => setExternalFavorites(res.data || []))
@@ -249,8 +260,12 @@ const Home = () => {
                   className="min-w-[180px] md:min-w-[200px] flex-shrink-0 group snap-start">
                   <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-gray-200 dark:bg-gray-800 shadow-md group-hover:shadow-[#00dc64]/20 group-hover:shadow-2xl group-hover:-translate-y-2 transition-all duration-300">
                     {manga.coverUrl && (
-                      <img src={manga.coverUrl} alt=""
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                      <img
+                        src={manga.coverUrl}
+                        alt={manga.title}
+                        crossOrigin="anonymous"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
                       <span className="text-white font-bold text-xs">Read Now →</span>
@@ -261,7 +276,8 @@ const Home = () => {
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5 capitalize">{manga.status}</p>
                 </Link>
-              ))}
+                )
+              )}
           </div>
         </section>
       )}
@@ -284,17 +300,17 @@ const Home = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            
+
             {/* 1. Show Search/Genre results if active */}
             {isFiltered ? (
-               webtoons.length > 0 ? (
-                 webtoons.map(w => <WebtoonCard key={w.id} webtoon={w} />)
-               ) : (
-                 <div className="col-span-full text-center py-20 bg-gray-50 dark:bg-white/5 rounded-3xl">
-                   <p className="text-gray-500 font-bold text-lg">No results found</p>
-                   <p className="text-gray-400 text-sm">Try another search or browse categories</p>
-                 </div>
-               )
+              webtoons.length > 0 ? (
+                webtoons.map(w => <WebtoonCard key={w.id} webtoon={w} />)
+              ) : (
+                <div className="col-span-full text-center py-20 bg-gray-50 dark:bg-white/5 rounded-3xl">
+                  <p className="text-gray-500 font-bold text-lg">No results found</p>
+                  <p className="text-gray-400 text-sm">Try another search or browse categories</p>
+                </div>
+              )
             ) : (
               // 2. Otherwise show Unified Library (Internal + External)
               <>
@@ -313,7 +329,7 @@ const Home = () => {
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-700 dark:to-gray-800 text-4xl">📚</div>
                       )}
-                      
+
                       <div className="absolute top-2 right-2 p-1.5 bg-red-500/90 rounded-full shadow">
                         <Heart size={12} className="text-white fill-current" />
                       </div>

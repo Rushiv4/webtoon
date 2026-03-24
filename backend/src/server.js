@@ -17,6 +17,7 @@ app.use('/api/chapters', require('./routes/chapterRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/comments', require('./routes/commentRoutes'));
 app.use('/api/external', require('./routes/externalRoutes')); // External API integration
+app.use('/api/payments', require('./routes/paymentRoutes')); // Razorpay integration
 
 // Basic route
 app.get('/', (req, res) => {

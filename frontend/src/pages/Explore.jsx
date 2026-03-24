@@ -5,29 +5,29 @@ import { Search, Tag, X, ChevronLeft, ChevronRight, BookOpen } from 'lucide-reac
 
 // MangaDex official tag UUIDs for popular genres
 const GENRES = [
-    { name: 'Action',        id: '391b0423-d847-456f-aff0-8f0cec6cf629' },
-    { name: 'Romance',       id: '423e2eae-a7a2-4a8b-ac03-a8351462d71d' },
-    { name: 'Fantasy',       id: 'cdc58593-87dd-415e-bbc0-2ec27bf404cc' },
-    { name: 'Comedy',        id: '4d32cc48-9f00-4cca-9b5a-a839f0764984' },
-    { name: 'Adventure',     id: '87cc87cd-a395-47af-b27a-93258283bbc6' },
-    { name: 'Drama',         id: 'b9af3a63-f058-46de-a9a0-e0c13906197a' },
-    { name: 'Thriller',      id: '07251805-a27e-4d59-b488-f0bfbec15168' },
-    { name: 'Sci-Fi',        id: '256c8bd9-4904-4360-bf4f-508a76d67183' },
-    { name: 'Horror',        id: 'cdad7e68-1419-41dd-bdce-27753074a640' },
-    { name: 'Mystery',       id: 'ee968100-4191-4968-93d3-f68d863ea48b' },
+    { name: 'Action', id: '391b0423-d847-456f-aff0-8f0cec6cf629' },
+    { name: 'Romance', id: '423e2eae-a7a2-4a8b-ac03-a8351462d71d' },
+    { name: 'Fantasy', id: 'cdc58593-87dd-415e-bbc0-2ec27bf404cc' },
+    { name: 'Comedy', id: '4d32cc48-9f00-4cca-9b5a-a839f0764984' },
+    { name: 'Adventure', id: '87cc87cd-a395-47af-b27a-93258283bbc6' },
+    { name: 'Drama', id: 'b9af3a63-f058-46de-a9a0-e0c13906197a' },
+    { name: 'Thriller', id: '07251805-a27e-4d59-b488-f0bfbec15168' },
+    { name: 'Sci-Fi', id: '256c8bd9-4904-4360-bf4f-508a76d67183' },
+    { name: 'Horror', id: 'cdad7e68-1419-41dd-bdce-27753074a640' },
+    { name: 'Mystery', id: 'ee968100-4191-4968-93d3-f68d863ea48b' },
     { name: 'Slice of Life', id: 'e5301a23-ebd9-49dd-a0cb-2add944c7fe9' },
-    { name: 'Sports',        id: '69964a64-2f90-4d33-beeb-f3ed2875eb4c' },
-    { name: 'Isekai',        id: 'ace04997-f6bd-436e-b261-779182193d3d' },
-    { name: 'Martial Arts',  id: '799c202e-7daa-44eb-9cf7-8a3c0441531e' },
-    { name: 'Supernatural',  id: 'eabc5b4c-6aff-42f3-b657-3e90cbd00b75' },
+    { name: 'Sports', id: '69964a64-2f90-4d33-beeb-f3ed2875eb4c' },
+    { name: 'Isekai', id: 'ace04997-f6bd-436e-b261-779182193d3d' },
+    { name: 'Martial Arts', id: '799c202e-7daa-44eb-9cf7-8a3c0441531e' },
+    { name: 'Supernatural', id: 'eabc5b4c-6aff-42f3-b657-3e90cbd00b75' },
 ];
 
 const GENRE_COLORS = [
-    'from-orange-500 to-red-500','from-pink-500 to-rose-500','from-violet-500 to-purple-500',
-    'from-yellow-400 to-orange-400','from-emerald-500 to-teal-500','from-blue-500 to-indigo-500',
-    'from-red-600 to-pink-600','from-cyan-500 to-blue-500','from-gray-600 to-gray-800',
-    'from-lime-400 to-emerald-500','from-teal-400 to-cyan-400','from-amber-500 to-yellow-400',
-    'from-fuchsia-500 to-violet-500','from-orange-600 to-amber-600','from-indigo-500 to-blue-600',
+    'from-orange-500 to-red-500', 'from-pink-500 to-rose-500', 'from-violet-500 to-purple-500',
+    'from-yellow-400 to-orange-400', 'from-emerald-500 to-teal-500', 'from-blue-500 to-indigo-500',
+    'from-red-600 to-pink-600', 'from-cyan-500 to-blue-500', 'from-gray-600 to-gray-800',
+    'from-lime-400 to-emerald-500', 'from-teal-400 to-cyan-400', 'from-amber-500 to-yellow-400',
+    'from-fuchsia-500 to-violet-500', 'from-orange-600 to-amber-600', 'from-indigo-500 to-blue-600',
 ];
 
 /* ─── Hero Slider ───────────────────────────────────────────────── */
@@ -55,12 +55,6 @@ const HeroSlider = ({ items }) => {
     const prev = () => goTo((current - 1 + items.length) % items.length);
     const next = () => goTo((current + 1) % items.length);
 
-    const getCoverUrl = (manga) => {
-        const c = manga.relationships?.find(r => r.type === 'cover_art');
-        return c?.attributes ? `https://uploads.mangadex.org/covers/${manga.id}/${c.attributes.fileName}` : '';
-    };
-    const getTitle = (m) => m.attributes?.title?.en || Object.values(m.attributes?.title || {})[0] || '';
-
     if (items.length === 0) return (
         <div className="w-full h-[480px] md:h-[580px] rounded-[2.5rem] animate-pulse bg-gray-200 dark:bg-gray-800" />
     );
@@ -74,8 +68,9 @@ const HeroSlider = ({ items }) => {
                 <div key={m.id}
                     className={`absolute inset-0 transition-opacity duration-1000 ${i === current ? 'opacity-100' : 'opacity-0'}`}>
                     <img
-                        src={getCoverUrl(m)}
+                        src={m.fullCoverUrl || m.coverUrl}
                         alt=""
+                        crossOrigin="anonymous"
                         className="w-full h-full object-cover scale-105"
                     />
                 </div>
@@ -92,15 +87,15 @@ const HeroSlider = ({ items }) => {
                         🔥 Trending #{current + 1}
                     </span>
                     <span className="px-4 py-1.5 bg-white/10 backdrop-blur text-white text-xs font-black rounded-full border border-white/20 capitalize">
-                        {slide.attributes?.status}
+                        {slide.status}
                     </span>
                 </div>
 
                 <h2 className="text-3xl md:text-5xl font-black text-white mb-4 leading-tight drop-shadow-2xl">
-                    {getTitle(slide)}
+                    {slide.title}
                 </h2>
                 <p className="text-gray-300 text-sm md:text-base mb-8 line-clamp-2 max-w-lg leading-relaxed">
-                    {slide.attributes?.description?.en || Object.values(slide.attributes?.description || {})[0] || 'Discover this trending title in the Global Library.'}
+                    {slide.description || 'Discover this trending title in the Global Library.'}
                 </p>
 
                 <Link
@@ -143,14 +138,8 @@ const Explore = () => {
 
     // Load trending for hero
     useEffect(() => {
-        getTrendingManga(8).then(d => setHeroItems(d.data || [])).catch(() => {});
+        getTrendingManga(8).then(d => setHeroItems(d.data || [])).catch(() => { });
     }, []);
-
-    const getCoverUrl = (manga) => {
-        const c = manga.relationships?.find(r => r.type === 'cover_art');
-        return c?.attributes ? `https://uploads.mangadex.org/covers/${manga.id}/${c.attributes.fileName}.256.jpg` : '';
-    };
-    const getTitle = (m) => m.attributes?.title?.en || Object.values(m.attributes?.title || {})[0] || 'Unknown';
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -159,6 +148,7 @@ const Explore = () => {
         setLoading(true);
         try {
             const data = await searchMangaDex(query);
+            console.log("[DEBUG] Explore Search Results:", data.data);
             setResults(data.data || []);
         } catch (err) {
             console.error(err);
@@ -174,6 +164,7 @@ const Explore = () => {
         setLoading(true);
         try {
             const data = await getGenreManga(genre.id);
+            console.log("[DEBUG] Explore Genre Results:", data.data);
             setResults(data.data || []);
         } catch (err) {
             console.error(err);
@@ -263,9 +254,14 @@ const Explore = () => {
                         {results.map(manga => (
                             <Link to={`/external-webtoon/${manga.id}`} key={manga.id} className="group">
                                 <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-gray-200 dark:bg-gray-800 shadow-md group-hover:shadow-[#00dc64]/20 group-hover:shadow-2xl group-hover:-translate-y-2 transition-all duration-300">
-                                    {getCoverUrl(manga) ? (
-                                        <img src={getCoverUrl(manga)} alt={getTitle(manga)}
-                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" />
+                                    {manga.coverUrl ? (
+                                        <img
+                                            src={manga.coverUrl}
+                                            alt={manga.title}
+                                            crossOrigin="anonymous"
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                            loading="lazy"
+                                        />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-700 dark:to-gray-800 text-4xl">📚</div>
                                     )}
@@ -276,11 +272,12 @@ const Explore = () => {
                                     </div>
                                 </div>
                                 <div className="mt-3">
-                                    <h3 className="font-bold text-sm line-clamp-1 dark:text-white group-hover:text-[#00dc64] transition-colors">{getTitle(manga)}</h3>
-                                    <p className="text-xs text-gray-400 mt-0.5 capitalize">{manga.attributes?.status} · {manga.attributes?.contentRating}</p>
+                                    <h3 className="font-bold text-sm line-clamp-1 dark:text-white group-hover:text-[#00dc64] transition-colors">{manga.title}</h3>
+                                    <p className="text-xs text-gray-400 mt-0.5 capitalize">{manga.status} · {manga.type}</p>
                                 </div>
                             </Link>
-                        ))}
+                        )
+                        )}
                         {results.length === 0 && !loading && (query || activeGenre) && (
                             <div className="col-span-full text-center py-20 text-gray-500">
                                 <p className="font-bold text-lg">No results found</p>
