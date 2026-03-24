@@ -13,11 +13,13 @@ router.post('/create-order', async (req, res) => {
   const { amount, currency = 'INR', receipt } = req.body;
 
   try {
+    console.log('Creating Razorpay order with amount:', amount);
     const options = {
-      amount: amount * 100, // Amount in lowest denomonation (paise for INR)
+      amount: parseInt(Math.round(amount * 100), 10), // Amount in lowest denomonation
       currency,
       receipt,
     };
+    console.log('Razorpay Options:', options);
 
     const order = await razorpay.orders.create(options);
     res.json(order);

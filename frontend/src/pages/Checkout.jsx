@@ -47,14 +47,14 @@ const Checkout = () => {
 
             // 1. Create Order on Backend
             const { data: order } = await api.post('/payments/create-order', {
-                amount: amount * 80, // rough conversion to INR if needed, or just use as is
+                amount: Math.round(amount * 80), // Corrected conversion logic (INR approximate)
                 currency: 'INR',
                 receipt: `receipt_${Date.now()}`
             });
 
             // 2. Open Razorpay Checkout
             const options = {
-                key: process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_test_YOUR_KEY_ID',
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_YOUR_KEY_ID',
                 amount: order.amount,
                 currency: order.currency,
                 name: 'Webtoon Premium',
