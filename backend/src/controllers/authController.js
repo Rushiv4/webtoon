@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const pool = require('../config/db');
 const admin = require('../config/firebaseAdmin');
 const { findUserByEmail, findUserByUsername, createUser, findUserById, findUserByFirebaseUid, createFirebaseUser } = require('../models/userModel');
 
@@ -91,9 +92,7 @@ const firebaseLogin = async (req, res) => {
 
       if (user) {
         // Link the existing local account with Firebase
-        // NOTE: You could add a 'linkAccount' model function, but for now we'll just return the JWT
-        // Or update the user's firebase_uid
-        await pool.execute('UPDATE users SET firebase_uid = ?, auth_provider = ? WHERE id = ?', [uid, 'google', user.id]);
+        await pool.query('UPDATE users SET firebase_uid = $1, auth_provider = $2 WHERE id = $3', [uid, 'google', user.id]);
         user.firebase_uid = uid;
         user.auth_provider = 'google';
       } else {

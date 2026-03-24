@@ -5,8 +5,8 @@ const ExternalFavorite = require('../models/externalFavoriteModel');
 // ── Admin ──────────────────────────────────────────────────────────
 const getAllUsers = async (req, res) => {
   try {
-    const [rows] = await pool.execute('SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC');
-    res.json(rows);
+    const result = await pool.query('SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC');
+    res.json(result.rows);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -15,8 +15,8 @@ const getAllUsers = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   try {
-    const [result] = await pool.execute('DELETE FROM users WHERE id=?', [req.params.id]);
-    if (result.affectedRows > 0) res.json({ message: 'User removed' });
+    const result = await pool.query('DELETE FROM users WHERE id=$1', [req.params.id]);
+    if (result.rowCount > 0) res.json({ message: 'User removed' });
     else res.status(404).json({ message: 'User not found' });
   } catch (error) {
     console.error(error);
@@ -38,8 +38,8 @@ const getFavorites = async (req, res) => {
 const toggleFavorite = async (req, res) => {
   try {
     const { webtoonId } = req.body;
-    const [check] = await pool.execute('SELECT * FROM favorites WHERE user_id = ? AND webtoon_id = ?', [req.user.id, webtoonId]);
-    if (check.length > 0) {
+    const result = await pool.query('SELECT * FROM favorites WHERE user_id = $1 AND webtoon_id = $2', [req.user.id, webtoonId]);
+    if (result.rows.length > 0) {
       await Favorite.removeFavorite(req.user.id, webtoonId);
       res.json({ message: 'Removed from favorites', status: 'removed' });
     } else {
