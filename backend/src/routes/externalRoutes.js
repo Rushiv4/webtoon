@@ -55,6 +55,17 @@ router.get('/trending', async (req, res) => {
         const { limit } = req.query;
         console.log(`[DEBUG] GET /external/trending - limit: ${limit}`);
         const results = await mangaDexService.getTrendingManga(limit);
+        
+        if (results.data && results.data.length > 0) {
+            const firstManga = results.data[0];
+            const cover = firstManga.relationships?.find(r => r.type === 'cover_art');
+            console.log(`[DEBUG] First Manga: ${firstManga.attributes?.title?.en || 'Unknown'}`);
+            console.log(`[DEBUG] Cover Art Attributes present: ${!!cover?.attributes}`);
+            if (cover?.attributes) {
+                console.log(`[DEBUG] Cover fileName: ${cover.attributes.fileName}`);
+            }
+        }
+
         console.log(`[DEBUG] Trending results count: ${results.data?.length || 0}`);
         res.json(results);
     } catch (error) {
