@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getExternalChapterImages, getExternalMangaChapters } from '../services/externalManga';
+import { getExternalChapterImages, getExternalMangaChapters, getExternalMangaDetails } from '../services/externalManga';
 import { ChevronLeft, ChevronRight, List, Maximize2, Minimize2, ArrowLeft, ArrowRight } from 'lucide-react';
+import Chatbot from '../components/Chatbot';
 
 // Route MangaDex@Home image URLs through our backend proxy to avoid hotlink blocking
 const PROXY_BASE = 'https://webtoon-whlx.onrender.com/api/external/image-proxy?url=';
@@ -15,9 +16,18 @@ const ExternalChapterReader = () => {
     const [fullWidth, setFullWidth] = useState(true);
     const [chapters, setChapters] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(-1);
+    const [mangaDetails, setMangaDetails] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
+        const fetchDetails = async () => {
+            try {
+                const res = await getExternalMangaDetails(mangaId);
+                setMangaDetails(res.data);
+            } catch (e) {
+                console.error('Failed to load manga details:', e);
+            }
+        };
         const fetchChapters = async () => {
             try {
                 const res = await getExternalMangaChapters(mangaId);
@@ -32,6 +42,7 @@ const ExternalChapterReader = () => {
                 console.error('Failed to load chapter list:', e);
             }
         };
+        fetchDetails();
         fetchChapters();
     }, [mangaId, chapterId]);
 
@@ -216,6 +227,15 @@ const ExternalChapterReader = () => {
                     </div>
                 </div>
             )}
+            
+            <Chatbot 
+                webtoonContext={{
+                    title: mangaDetails?.title,
+                    description: mangaDetails?.description,
+                    author: mangaDetails?.author,
+                    chapterNo: currentChapterNum
+                }} 
+            />
         </div>
     );
 };

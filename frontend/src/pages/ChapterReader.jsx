@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import { ChevronLeft, ChevronRight, MessageSquare, Send } from 'lucide-react';
+import Chatbot from '../components/Chatbot';
 
 const ChapterReader = () => {
   const { webtoonId, chapterNo } = useParams();
@@ -11,6 +12,7 @@ const ChapterReader = () => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
+  const [webtoonInfo, setWebtoonInfo] = useState(null);
   const { user } = useContext(AuthContext);
 
   useEffect(() => {
@@ -18,6 +20,9 @@ const ChapterReader = () => {
       window.scrollTo(0, 0);
       setLoading(true);
       try {
+        const webtoonRes = await api.get(`/webtoons/${webtoonId}`);
+        setWebtoonInfo(webtoonRes.data);
+
         // Find chapter ID by webtoon ID and chapterNo
         const chaptersRes = await api.get(`/chapters/webtoon/${webtoonId}`);
         const currentChapter = chaptersRes.data.find(c => c.chapter_no === parseInt(chapterNo));
@@ -164,6 +169,15 @@ const ChapterReader = () => {
           {comments.length === 0 && <p className="text-center text-gray-500 py-4">Be the first to comment!</p>}
         </div>
       </div>
+      
+      <Chatbot 
+        webtoonContext={{
+          title: webtoonInfo?.title,
+          description: webtoonInfo?.description,
+          author: webtoonInfo?.author,
+          chapterNo: chapterInfo.chapter_no
+        }} 
+      />
     </div>
   );
 };
