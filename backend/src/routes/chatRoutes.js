@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const openaiService = require('../services/openaiService');
+const aiService = require('../services/aiService');
 
 // POST /api/chat/message
 router.post('/message', async (req, res) => {
@@ -11,7 +11,7 @@ router.post('/message', async (req, res) => {
       return res.status(400).json({ error: 'Valid messages array is required.' });
     }
 
-    const responseMessage = await openaiService.generateChatResponse(messages, webtoonContext || {});
+    const responseMessage = await aiService.generateChatResponse(messages, webtoonContext || {});
     res.json({ message: responseMessage });
   } catch (error) {
     console.error('Chat API Error:', error);
@@ -24,7 +24,7 @@ router.post('/summarize', async (req, res) => {
   try {
     const { webtoonContext } = req.body;
     
-    const responseMessage = await openaiService.generateChapterSummary(webtoonContext || {});
+    const responseMessage = await aiService.generateChapterSummary(webtoonContext || {});
     res.json({ message: responseMessage });
   } catch (error) {
     console.error('Summarize API Error:', error);
