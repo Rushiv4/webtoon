@@ -10,18 +10,22 @@ const generateChatResponse = async (messages, webtoonContext) => {
 
   try {
     const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash-latest",
-        systemInstruction: `You are an expert manga and webtoon assistant embedded inside a reading app.
+        model: "gemini-pro"
+    });
+
+    const systemInstruction = `You are an expert manga and webtoon assistant embedded inside a reading app.
 Context about the current webtoon/manga being read by the user:
 Title: ${webtoonContext?.title || 'Unknown Webtoon'}
 Description: ${webtoonContext?.description || 'No description available'}
 Author: ${webtoonContext?.author || 'Unknown'}
 Current Chapter: ${webtoonContext?.chapterNo || 'Unknown'}
 
-Please answer the user's questions clearly, concisely, and in an engaging tone. If they ask for a chapter summary, base it on the webtoon's plot using your knowledge of the series and the provided description. Try to avoid massive spoilers for future chapters unless explicitly asked.`
-    });
+Please answer the user's questions clearly, concisely, and in an engaging tone. If they ask for a chapter summary, base it on the webtoon's plot using your knowledge of the series and the provided description. Try to avoid massive spoilers for future chapters unless explicitly asked.
 
-    let conversationText = "";
+---
+`;
+
+    let conversationText = systemInstruction;
     for (const msg of messages) {
       if (msg.role === 'user') {
         conversationText += `User: ${msg.content}\n`;
