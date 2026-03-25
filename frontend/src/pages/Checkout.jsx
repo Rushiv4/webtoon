@@ -9,7 +9,9 @@ const Checkout = () => {
     const navigate = useNavigate();
     const plan = searchParams.get('plan') || 'Free Reader';
     const priceStr = searchParams.get('price') || 'Free';
-    const amount = parseFloat(priceStr.replace('$', '')) || 0;
+    const rawAmount = parseFloat(priceStr.replace(/[^\d.]/g, '')) || 0;
+    const isINR = priceStr.includes('₹') || priceStr.toLowerCase().includes('rs');
+    const amount = isINR ? rawAmount : Math.round(rawAmount * 80);
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -47,7 +49,7 @@ const Checkout = () => {
 
             // 1. Create Order on Backend
             const { data: order } = await api.post('/payments/create-order', {
-                amount: Math.round(amount * 80), // Corrected conversion logic (INR approximate)
+                amount: amount, // 'amount' is already in INR from the state calculation above
                 currency: 'INR',
                 receipt: `receipt_${Date.now()}`
             });
@@ -68,7 +70,7 @@ const Checkout = () => {
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_signature: response.razorpay_signature,
                             plan_name: plan,
-                            amount: Math.round(amount * 80 * 100),
+                            amount: Math.round(amount * 100), // Convert INR amount to paise
                         });
 
                         if (verifyRes.data.success) {

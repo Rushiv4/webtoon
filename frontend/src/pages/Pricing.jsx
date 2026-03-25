@@ -80,7 +80,7 @@ const Pricing = () => {
     },
     {
       title: 'Elite Member',
-      price: '$9.99',
+      price: '₹9',
       description: 'Designed for the true enthusiast who wants the best reading experience every single day.',
       popular: true,
       icon: Zap,
@@ -95,7 +95,7 @@ const Pricing = () => {
     },
     {
       title: 'Legendary',
-      price: '$19.99',
+      price: '₹50',
       description: 'The ultimate collection for master readers who want to support creators and own it all.',
       icon: Star,
       color: 'bg-violet-500',
