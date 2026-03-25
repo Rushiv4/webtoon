@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const { protect } = require('../middleware/authMiddleware');
+const { createPaymentRecord, getPaymentsByUserId } = require('../models/paymentModel');
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -15,7 +17,7 @@ router.post('/create-order', async (req, res) => {
   try {
     console.log('Creating Razorpay order with amount:', amount);
     const options = {
-      amount: parseInt(Math.round(amount * 100), 10), // Amount in lowest denomonation
+      amount: parseInt(Math.round(amount * 100), 10), // Amount in lowest denomination
       currency,
       receipt,
     };
@@ -29,9 +31,9 @@ router.post('/create-order', async (req, res) => {
   }
 });
 
-// Verify payment
-router.post('/verify', (req, res) => {
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+// Verify payment and record history
+router.post('/verify', protect, async (req, res) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, plan_name, amount } = req.body;
 
   const sign = razorpay_order_id + '|' + razorpay_payment_id;
   const expectedSign = crypto
@@ -40,11 +42,35 @@ router.post('/verify', (req, res) => {
     .digest('hex');
 
   if (razorpay_signature === expectedSign) {
-    // Payment verified
-    // Here you would typically update the user's subscription in the database
-    res.json({ message: 'Payment verified successfully', success: true });
+    try {
+      // Save payment record to database
+      const record = await createPaymentRecord(
+        req.user.id,
+        razorpay_order_id,
+        razorpay_payment_id,
+        plan_name || 'Premium',
+        amount || 0,
+        'INR'
+      );
+      res.json({ message: 'Payment verified successfully', success: true, payment: record });
+    } catch (dbError) {
+      console.error('DB Error saving payment:', dbError);
+      // Payment was verified but DB save failed — still return success to user
+      res.json({ message: 'Payment verified, but history save failed', success: true });
+    }
   } else {
     res.status(400).json({ message: 'Invalid payment signature', success: false });
+  }
+});
+
+// Get payment history for logged-in user
+router.get('/history', protect, async (req, res) => {
+  try {
+    const payments = await getPaymentsByUserId(req.user.id);
+    res.json(payments);
+  } catch (error) {
+    console.error('Error fetching payment history:', error);
+    res.status(500).json({ message: 'Error fetching payment history' });
   }
 });
 

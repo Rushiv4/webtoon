@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
-import { Moon, Sun, Menu, UserCircle, LogOut } from 'lucide-react';
+import { Moon, Sun, Menu, UserCircle, LogOut, Receipt } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -53,6 +53,9 @@ const Navbar = () => {
               <span className="hidden sm:block font-medium dark:text-gray-300 text-gray-700">
                 Hi, {user.username}
               </span>
+              <Link to="/payment-history" className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full transition" title="Payment History">
+                <Receipt size={20} className="text-gray-500 dark:text-gray-400" />
+              </Link>
               {user.role === 'admin' && (
                 <Link to="/admin" className="text-sm font-bold text-[#00dc64] border border-[#00dc64] px-3 py-1 rounded-full hover:bg-[#00dc64] hover:text-white transition">
                   Admin

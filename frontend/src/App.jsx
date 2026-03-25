@@ -12,6 +12,7 @@ import Pricing from './pages/Pricing';
 import Checkout from './pages/Checkout';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import RefundPolicy from './pages/RefundPolicy';
+import PaymentHistory from './pages/PaymentHistory';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
@@ -41,6 +42,7 @@ function App() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/refund-policy" element={<RefundPolicy />} />
+            <Route path="/payment-history" element={<PaymentHistory />} />
 
 
           </Routes>
