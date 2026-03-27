@@ -10,7 +10,7 @@ const generateChatResponse = async (messages, webtoonContext) => {
 
   try {
     const model = genAI.getGenerativeModel({ 
-        model: "gemini-pro"
+        model: "models/gemini-1.5-flash"
     });
 
     const systemInstruction = `You are an expert manga and webtoon assistant embedded inside a reading app.

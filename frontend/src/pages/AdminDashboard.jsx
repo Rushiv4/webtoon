@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import api from '../services/api';
-import { Plus, Edit, Trash2, Image as ImageIcon, Users, BookOpen } from 'lucide-react';
+import { Plus, Edit, Trash2, Image as ImageIcon, Users, BookOpen, DollarSign } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { user } = useContext(AuthContext);
@@ -64,6 +64,12 @@ const AdminDashboard = () => {
             className={`px-4 py-2 rounded-xl font-bold transition flex items-center gap-2 ${activeTab === 'users' ? 'bg-[#00dc64] text-white shadow-md shadow-[#00dc64]/20' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
           >
             <Users size={18} /> Users
+          </button>
+          <button 
+            onClick={() => navigate('/admin/payments')}
+            className="px-4 py-2 rounded-xl font-bold transition flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-[#00dc64] hover:text-white"
+          >
+            <DollarSign size={18} /> Payments
           </button>
         </div>
       </div>

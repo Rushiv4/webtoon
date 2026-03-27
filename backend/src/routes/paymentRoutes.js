@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
-const { protect } = require('../middleware/authMiddleware');
-const { createPaymentRecord, getPaymentsByUserId } = require('../models/paymentModel');
+const { protect, admin } = require('../middleware/authMiddleware');
+const { createPaymentRecord, getPaymentsByUserId, getAllPayments } = require('../models/paymentModel');
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -71,6 +71,17 @@ router.get('/history', protect, async (req, res) => {
   } catch (error) {
     console.error('Error fetching payment history:', error);
     res.status(500).json({ message: 'Error fetching payment history' });
+  }
+});
+
+// Admin: Get all payment history
+router.get('/report', protect, admin, async (req, res) => {
+  try {
+    const payments = await getAllPayments();
+    res.json(payments);
+  } catch (error) {
+    console.error('Error fetching comprehensive payment report:', error);
+    res.status(500).json({ message: 'Error fetching payment report' });
   }
 });
 

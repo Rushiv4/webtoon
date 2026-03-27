@@ -41,8 +41,7 @@ function App() {
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/refund-policy" element={<RefundPolicy />} />
-            <Route path="/payment-history" element={<PaymentHistory />} />
+            <Route path="/admin/payments" element={<PaymentHistory />} />
 
 
           </Routes>

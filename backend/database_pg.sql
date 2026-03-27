@@ -1,6 +1,7 @@
 -- Supabase / PostgreSQL Schema
 
 -- Drop tables if they exist (for a clean start in Supabase SQL editor)
+DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS comments;
 DROP TABLE IF EXISTS favorites;
 DROP TABLE IF EXISTS images;
@@ -17,6 +18,19 @@ CREATE TABLE users (
     firebase_uid VARCHAR(128) UNIQUE,
     auth_provider VARCHAR(20) DEFAULT 'local',
     role VARCHAR(20) DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Payments Table (NEW)
+CREATE TABLE payments (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    razorpay_order_id VARCHAR(100) NOT NULL UNIQUE,
+    razorpay_payment_id VARCHAR(100) NOT NULL UNIQUE,
+    amount INT NOT NULL, -- Stored in paise/cents
+    currency VARCHAR(10) DEFAULT 'INR',
+    plan_name VARCHAR(50) NOT NULL,
+    status VARCHAR(20) DEFAULT 'success',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
