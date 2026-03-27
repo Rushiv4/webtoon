@@ -9,12 +9,18 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (e) {
+      console.warn('Auth initialization error:', e);
+      localStorage.removeItem('user');
     }
     setLoading(false);
   }, []);
+
 
   const register = async (username, email, password) => {
     const response = await api.post('/auth/register', { username, email, password });

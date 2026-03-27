@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DollarSign, Tremor, AreaChart, BarChart3, Users, Loader2, ArrowLeft, Download, ShieldCheck } from 'lucide-react';
+import { DollarSign, AreaChart, BarChart3, Users, Loader2, ArrowLeft, Download, ShieldCheck } from 'lucide-react';
 import api from '../services/api';
 
 const PaymentHistory = () => {
